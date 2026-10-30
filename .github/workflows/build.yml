@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 Ihor Martseniuk and Silent Softphone Free contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            qt_arch: win64_msvc2022_64
+            binary: build/Release/SilentSoftphoneFree.exe
+          - name: macOS
+            os: macos-latest
+            qt_arch: clang_64
+            binary: build/Silent Softphone Free.app/Contents/MacOS/Silent Softphone Free
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+          arch: ${{ matrix.qt_arch }}
+          cache: true
+
+      - name: Cache PJSIP
+        id: pjsip-cache
+        uses: actions/cache@v4
+        with:
+          path: pjsip
+          key: pjsip-2.17-${{ runner.os }}-${{ hashFiles('tools/build_pjsip.sh') }}
+
+      - name: MSVC environment
+        if: runner.os == 'Windows' && steps.pjsip-cache.outputs.cache-hit != 'true'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build PJSIP
+        if: steps.pjsip-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: tools/build_pjsip.sh "$GITHUB_WORKSPACE/pjsip" 2.17
+
+      - name: Configure
+        shell: bash
+        run: >
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          -DSILENTSOFTPHONE_REQUIRE_PJSIP=ON
+          -DPj_DIR="$GITHUB_WORKSPACE/pjsip/lib/cmake/Pj"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: SIP stack check
+        shell: bash
+        run: '"${{ matrix.binary }}" --sip-check'
+
+      - name: Smoke test
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_QUICK_BACKEND: software
+        run: |
+          # The offscreen platform on Windows has no font database of its own.
+          if [ "$RUNNER_OS" = Windows ]; then export QT_QPA_FONTDIR='C:\Windows\Fonts'; fi
+          "${{ matrix.binary }}" --smoke-test --screenshots screenshots
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.name }}
+          path: screenshots/
+          if-no-files-found: ignore
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist/SilentSoftphoneFree
+          cp build/Release/SilentSoftphoneFree.exe LICENSE NOTICE.md dist/SilentSoftphoneFree/
+          windeployqt --release --qmldir qml --no-translations dist/SilentSoftphoneFree/SilentSoftphoneFree.exe
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          app="build/Silent Softphone Free.app"
+          cp LICENSE NOTICE.md "$app/Contents/Resources/"
+          macdeployqt "$app" -qmldir=qml
+          # macdeployqt rewrites library paths inside the bundle, which breaks the code
+          # signature; Apple Silicon refuses to launch code with an invalid signature,
+          # so sign the finished bundle ad hoc (no Apple Developer ID needed).
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          mkdir -p dist
+          ditto -c -k --keepParent "$app" dist/SilentSoftphoneFree-macOS.zip
+
+      # Launch the packaged app exactly as users get it, so a broken deployment or
+      # signature fails CI instead of failing on the user's machine.
+      - name: Check package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: dist/SilentSoftphoneFree/SilentSoftphoneFree.exe --sip-check
+
+      - name: Check package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          rm -rf "$RUNNER_TEMP/package"
+          ditto -x -k dist/SilentSoftphoneFree-macOS.zip "$RUNNER_TEMP/package"
+          app="$RUNNER_TEMP/package/Silent Softphone Free.app"
+          codesign --verify --deep --strict "$app"
+          "$app/Contents/MacOS/Silent Softphone Free" --sip-check
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SilentSoftphoneFree-${{ matrix.name }}
+          path: dist/
