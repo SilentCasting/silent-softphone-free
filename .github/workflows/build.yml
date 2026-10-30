@@ -6,6 +6,7 @@ name: Build
 on:
   push:
     branches: [main]
+    tags: ['v*']   # a version tag also publishes a GitHub release (job "release")
   pull_request:
   workflow_dispatch:
 
@@ -86,6 +87,8 @@ jobs:
           path: screenshots/
           if-no-files-found: ignore
 
+      # Release assets keep fixed names, so README and website links to
+      # releases/latest/download/<name> always point at the newest version.
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: bash
@@ -93,6 +96,8 @@ jobs:
           mkdir -p dist/SilentSoftphoneFree
           cp build/Release/SilentSoftphoneFree.exe LICENSE NOTICE.md dist/SilentSoftphoneFree/
           windeployqt --release --qmldir qml --no-translations dist/SilentSoftphoneFree/SilentSoftphoneFree.exe
+          (cd dist && 7z a -tzip -bso0 SilentSoftphoneFree-Windows-x64.zip SilentSoftphoneFree)
+          rm -rf dist/SilentSoftphoneFree
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
@@ -106,20 +111,23 @@ jobs:
           codesign --force --deep --sign - "$app"
           codesign --verify --deep --strict --verbose=2 "$app"
           mkdir -p dist
-          ditto -c -k --keepParent "$app" dist/SilentSoftphoneFree-macOS.zip
+          ditto -c -k --keepParent "$app" dist/SilentSoftphoneFree-macOS-arm64.zip
 
-      # Launch the packaged app exactly as users get it, so a broken deployment or
-      # signature fails CI instead of failing on the user's machine.
+      # Unpack and launch the archive exactly as users get it, so a broken deployment
+      # or signature fails CI instead of failing on the user's machine.
       - name: Check package (Windows)
         if: runner.os == 'Windows'
         shell: bash
-        run: dist/SilentSoftphoneFree/SilentSoftphoneFree.exe --sip-check
+        run: |
+          rm -rf "$RUNNER_TEMP/package"
+          7z x -bso0 -o"$RUNNER_TEMP/package" dist/SilentSoftphoneFree-Windows-x64.zip
+          "$RUNNER_TEMP/package/SilentSoftphoneFree/SilentSoftphoneFree.exe" --sip-check
 
       - name: Check package (macOS)
         if: runner.os == 'macOS'
         run: |
           rm -rf "$RUNNER_TEMP/package"
-          ditto -x -k dist/SilentSoftphoneFree-macOS.zip "$RUNNER_TEMP/package"
+          ditto -x -k dist/SilentSoftphoneFree-macOS-arm64.zip "$RUNNER_TEMP/package"
           app="$RUNNER_TEMP/package/Silent Softphone Free.app"
           codesign --verify --deep --strict "$app"
           "$app/Contents/MacOS/Silent Softphone Free" --sip-check
@@ -128,4 +136,32 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SilentSoftphoneFree-${{ matrix.name }}
-          path: dist/
+          path: dist/*.zip
+
+  # Tag vX.Y.Z → GitHub release with both archives and notes from docs/releases/vX.Y.Z.md.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: SilentSoftphoneFree-*
+          merge-multiple: true
+          path: assets
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then notes_args=(--notes-file "$notes"); else notes_args=(--generate-notes); fi
+          gh release create "$GITHUB_REF_NAME" assets/*.zip \
+            --verify-tag \
+            --title "Silent Softphone Free ${GITHUB_REF_NAME#v}" \
+            "${notes_args[@]}"

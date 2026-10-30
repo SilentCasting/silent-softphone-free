@@ -1,8 +1,25 @@
+<div align="center">
+
 <img src="assets/icon/app.png" width="96" alt="Silent Softphone Free">
 
 # Silent Softphone Free
 
-[English](#english) · [Українська](#українська)
+A lightweight, free and open-source SIP softphone for Windows and macOS<br>
+Легкий, безкоштовний SIP softphone з відкритим кодом для Windows і macOS
+
+[![Latest release](https://img.shields.io/github/v/release/SilentCasting/silent-softphone-free?label=release)](https://github.com/SilentCasting/silent-softphone-free/releases/latest)
+[![Build](https://github.com/SilentCasting/silent-softphone-free/actions/workflows/build.yml/badge.svg)](https://github.com/SilentCasting/silent-softphone-free/actions/workflows/build.yml)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS-lightgrey)
+
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20x64-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/SilentCasting/silent-softphone-free/releases/latest/download/SilentSoftphoneFree-Windows-x64.zip)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20Apple%20Silicon-2563EB?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/SilentCasting/silent-softphone-free/releases/latest/download/SilentSoftphoneFree-macOS-arm64.zip)
+
+[Website](https://silentcasting.github.io/silent-softphone-free/) · [All releases](https://github.com/SilentCasting/silent-softphone-free/releases) · [English](#english) · [Українська](#українська)
+
+<img src="site/images/wide-dark.png" width="720" alt="Silent Softphone Free, wide layout, dark theme">
+
+</div>
 
 ## English
 
@@ -10,7 +27,7 @@ A lightweight, free and open-source SIP softphone for **Windows** and **macOS**,
 Qt 6 and PJSIP.
 
 > **Status:** early development, v0.1.0. Builds are not code-signed yet (see
-> [Running the builds](#running-the-builds)).
+> [Download](#download)).
 
 ### Features
 
@@ -27,10 +44,20 @@ Qt 6 and PJSIP.
 - Light, dark and system themes; compact and wide layouts
 - SIP log file for troubleshooting
 
-### Running the builds
+<p>
+  <img src="site/images/call-light.png" width="240" alt="Call in progress, light theme">
+  <img src="site/images/call-dark.png" width="240" alt="Call in progress, dark theme">
+  <img src="site/images/settings-light.png" width="240" alt="Settings: accounts, DTMF and codecs">
+</p>
 
-Builds come from GitHub Actions: **Actions → latest "Build" run → Artifacts**
-(`SilentSoftphoneFree-Windows`, `SilentSoftphoneFree-macOS`).
+### Download
+
+| System | Download |
+|---|---|
+| Windows 10/11, 64-bit | [SilentSoftphoneFree-Windows-x64.zip](https://github.com/SilentCasting/silent-softphone-free/releases/latest/download/SilentSoftphoneFree-Windows-x64.zip) |
+| macOS 13+, Apple Silicon | [SilentSoftphoneFree-macOS-arm64.zip](https://github.com/SilentCasting/silent-softphone-free/releases/latest/download/SilentSoftphoneFree-macOS-arm64.zip) |
+
+Every release with its notes: [Releases](https://github.com/SilentCasting/silent-softphone-free/releases). No installer is needed:
 
 - **Windows:** unzip and run `SilentSoftphoneFree.exe`. If SmartScreen warns about an
   unrecognized app, choose **More info → Run anyway**.
@@ -80,7 +107,8 @@ src/
 qml/             Screens and components
 assets/          App icon, macOS Info.plist, Windows resources
 tools/           make_icons.py (icons), build_pjsip.sh (PJSIP build)
-docs/            Architecture and roadmap
+docs/            Architecture, roadmap, release notes
+site/            Website (GitHub Pages)
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROADMAP.md).
@@ -106,7 +134,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROAD
 Легкий, безкоштовний SIP softphone з відкритим кодом для **Windows** і **macOS** на Qt 6 та PJSIP.
 
 > **Статус:** рання розробка, v0.1.0. Збірки поки не підписані (див.
-> [Запуск збірок](#запуск-збірок)).
+> [Завантаження](#завантаження)).
 
 ### Можливості
 
@@ -123,10 +151,20 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROAD
 - Світла, темна та системна теми; компактний і широкий макети
 - SIP-журнал у файл для діагностики
 
-### Запуск збірок
+<p>
+  <img src="site/images/call-light.png" width="240" alt="Розмова, світла тема">
+  <img src="site/images/call-dark.png" width="240" alt="Розмова, темна тема">
+  <img src="site/images/settings-light.png" width="240" alt="Налаштування: акаунти, DTMF і кодеки">
+</p>
 
-Збірки беруться з GitHub Actions: **Actions → останній запуск «Build» → Artifacts**
-(`SilentSoftphoneFree-Windows`, `SilentSoftphoneFree-macOS`).
+### Завантаження
+
+| Система | Завантаження |
+|---|---|
+| Windows 10/11, 64-біт | [SilentSoftphoneFree-Windows-x64.zip](https://github.com/SilentCasting/silent-softphone-free/releases/latest/download/SilentSoftphoneFree-Windows-x64.zip) |
+| macOS 13+, Apple Silicon | [SilentSoftphoneFree-macOS-arm64.zip](https://github.com/SilentCasting/silent-softphone-free/releases/latest/download/SilentSoftphoneFree-macOS-arm64.zip) |
+
+Усі релізи з описами змін: [Releases](https://github.com/SilentCasting/silent-softphone-free/releases). Інсталятор не потрібен:
 
 - **Windows:** розпакуйте й запустіть `SilentSoftphoneFree.exe`. Якщо SmartScreen попереджає
   про невідомий застосунок, натисніть **Докладніше → Виконати в будь-якому разі**.
@@ -176,7 +214,8 @@ src/
 qml/             Екрани та компоненти
 assets/          Іконка, Info.plist для macOS, ресурси Windows
 tools/           make_icons.py (іконки), build_pjsip.sh (збірка PJSIP)
-docs/            Архітектура та план розвитку
+docs/            Архітектура, план розвитку, описи релізів
+site/            Вебсайт (GitHub Pages)
 ```
 
 Див. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) і [docs/ROADMAP.md](docs/ROADMAP.md).
