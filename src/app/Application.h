@@ -14,6 +14,7 @@ class ContactFilterModel;
 class ContactModel;
 class Diagnostics;
 class ISipService;
+class Permissions;
 class PhoneController;
 class QQmlApplicationEngine;
 class ThemeManager;
@@ -41,6 +42,9 @@ public:
     Diagnostics *diagnostics() const { return m_diagnostics; }
     TrayController *tray() const { return m_tray; }
 
+    // Asks the OS for the permissions calls need (macOS: microphone, notifications).
+    void requestPermissions();
+
     // Pjsip when the app was built with PJSIP, otherwise Mock.
     static SipBackend defaultBackend();
 
@@ -49,6 +53,7 @@ private:
     ThemeManager *m_theme;
     WindowSettings *m_windowSettings;
     AutoStart *m_autoStart;
+    Permissions *m_permissions;
     CallSettings *m_callSettings;
     AccountManager *m_accounts;
     ContactModel *m_contacts;

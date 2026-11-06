@@ -3,7 +3,10 @@
 
 cmake_minimum_required(VERSION 3.21)
 
-project(SilentSoftphoneFree VERSION 0.1.0 LANGUAGES CXX)
+project(SilentSoftphoneFree VERSION 0.1.1 LANGUAGES CXX)
+if(APPLE)
+    enable_language(OBJCXX) # macOS permission prompts (src/platform/Permissions_mac.mm)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -65,6 +68,7 @@ qt_add_qml_module(SilentSoftphoneFree
         qml/LevelMeter.qml
         qml/AppComboBox.qml
         qml/AppCheckBox.qml
+        qml/PermissionRow.qml
         qml/CallActionButton.qml
         qml/IncomingCallWindow.qml
         qml/ContactsPage.qml
@@ -94,6 +98,15 @@ elseif(APPLE)
     set(APP_ICNS ${CMAKE_CURRENT_SOURCE_DIR}/assets/icon/app.icns)
     set_source_files_properties(${APP_ICNS} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(SilentSoftphoneFree PRIVATE ${APP_ICNS})
+endif()
+
+# Privacy permissions: native on macOS, a no-op elsewhere.
+target_sources(SilentSoftphoneFree PRIVATE src/platform/Permissions.h)
+if(APPLE)
+    target_sources(SilentSoftphoneFree PRIVATE src/platform/Permissions_mac.mm)
+    target_link_libraries(SilentSoftphoneFree PRIVATE "-framework AVFoundation" "-framework UserNotifications")
+else()
+    target_sources(SilentSoftphoneFree PRIVATE src/platform/Permissions.cpp)
 endif()
 
 target_include_directories(SilentSoftphoneFree PRIVATE src)

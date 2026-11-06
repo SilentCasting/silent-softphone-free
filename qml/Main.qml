@@ -78,6 +78,15 @@ ApplicationWindow {
         }
     }
 
+    // Pick up permission changes made in System Settings while the app was in the background.
+    Connections {
+        target: Qt.application
+        function onStateChanged() {
+            if (Qt.application.state === Qt.ApplicationActive)
+                Permissions.refresh()
+        }
+    }
+
     Connections {
         target: Phone
         function onCurrentCallChanged() {

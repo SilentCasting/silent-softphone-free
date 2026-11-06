@@ -285,6 +285,32 @@ Flickable {
         }
 
         SettingsSection {
+            visible: Permissions.supported
+            title: qsTr("Permissions")
+
+            PermissionRow {
+                title: qsTr("Microphone")
+                detail: qsTr("Needed so the other side can hear you.")
+                status: Permissions.microphone
+                onRequested: Permissions.requestMicrophone()
+            }
+
+            PermissionRow {
+                title: qsTr("Notifications")
+                detail: qsTr("Alerts about incoming and missed calls.")
+                status: Permissions.notifications
+                onRequested: Permissions.requestNotifications()
+            }
+
+            PermissionRow {
+                title: qsTr("Local network")
+                detail: qsTr("Needed when your PBX is on the local network. macOS asks on the first connection.")
+                showStatus: false
+                onRequested: Permissions.openSettings("localNetwork")
+            }
+        }
+
+        SettingsSection {
             title: qsTr("Diagnostics")
 
             Label {

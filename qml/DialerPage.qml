@@ -50,6 +50,41 @@ Item {
         anchors.margins: 16
         spacing: 16
 
+        // Without the microphone calls still connect, but the other side hears nothing.
+        Rectangle {
+            visible: Permissions.supported && Permissions.microphone === "denied"
+            Layout.fillWidth: true
+            implicitHeight: micWarning.implicitHeight + 16
+            radius: 10
+            color: Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.12)
+
+            RowLayout {
+                id: micWarning
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 8
+
+                Icon {
+                    name: "mic_off"
+                    size: 18
+                    color: Theme.danger
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("Microphone access is off, so the other side can't hear you.")
+                    color: Theme.text
+                    font.pixelSize: 12
+                    wrapMode: Text.WordWrap
+                }
+
+                Button {
+                    text: qsTr("Fix")
+                    onClicked: Permissions.requestMicrophone()
+                }
+            }
+        }
+
         CallPanel {
             visible: root.inCall
             call: root.call

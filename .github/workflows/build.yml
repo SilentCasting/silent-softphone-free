@@ -108,7 +108,7 @@ jobs:
           # macdeployqt rewrites library paths inside the bundle, which breaks the code
           # signature; Apple Silicon refuses to launch code with an invalid signature,
           # so sign the finished bundle ad hoc (no Apple Developer ID needed).
-          codesign --force --deep --sign - "$app"
+          codesign --force --deep --sign - --entitlements assets/macos/entitlements.plist "$app"
           codesign --verify --deep --strict --verbose=2 "$app"
           mkdir -p dist
           ditto -c -k --keepParent "$app" dist/SilentSoftphoneFree-macOS-arm64.zip

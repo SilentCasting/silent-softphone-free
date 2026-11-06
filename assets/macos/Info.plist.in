@@ -28,7 +28,12 @@
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <!-- Shown in the macOS permission prompts. -->
     <key>NSMicrophoneUsageDescription</key>
     <string>Silent Softphone Free needs the microphone to send your voice during calls.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Silent Softphone Free uses the camera only for video calls.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Silent Softphone Free connects to your phone system (PBX) and SIP devices on the local network.</string>
 </dict>
 </plist>

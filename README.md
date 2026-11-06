@@ -65,6 +65,9 @@ Every release with its notes: [Releases](https://github.com/SilentCasting/silent
   it. If macOS blocks it, open **System Settings → Privacy & Security** and press
   **Open Anyway**, or run
   `xattr -dr com.apple.quarantine "/Applications/Silent Softphone Free.app"` in Terminal.
+  On first launch the app asks for the **microphone** and **notifications**; macOS also asks
+  about the **local network** when the PBX is on your LAN. Settings → Permissions shows the
+  status of each and opens System Settings if one was refused.
 
 ### Building from source
 
@@ -172,6 +175,9 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROAD
   і відкрийте. Якщо macOS блокує запуск, відкрийте **Системні параметри → Приватність і безпека**
   і натисніть **Усе одно відкрити**, або виконайте в Терміналі
   `xattr -dr com.apple.quarantine "/Applications/Silent Softphone Free.app"`.
+  При першому запуску застосунок попросить доступ до **мікрофона** й **сповіщень**; якщо АТС
+  у локальній мережі, macOS також запитає про **локальну мережу**. Settings → Permissions показує
+  стан кожного дозволу й відкриває системні налаштування, якщо доступ було відхилено.
 
 ### Збірка з вихідного коду
 

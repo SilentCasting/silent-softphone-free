@@ -73,6 +73,8 @@ int main(int argc, char *argv[])
     application.load(engine, arguments.contains(QStringLiteral("--minimized")));
 
     std::unique_ptr<SmokeTest> smoke;
+    if (!smokeTest)
+        application.requestPermissions(); // macOS prompts right away, not in the middle of a call
     if (smokeTest) {
         smoke = std::make_unique<SmokeTest>(application, engine,
                                             argumentValue(arguments, QStringLiteral("--screenshots")));

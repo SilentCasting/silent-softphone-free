@@ -11,6 +11,7 @@
 #include "models/CallHistoryModel.h"
 #include "models/CodecModel.h"
 #include "models/ContactModel.h"
+#include "platform/Permissions.h"
 #include "settings/AccountManager.h"
 #include "settings/CallSettings.h"
 #include "settings/WindowSettings.h"
@@ -53,6 +54,7 @@ Application::Application(SipBackend backend, const QString &logFile, QObject *pa
     , m_theme(new ThemeManager(this))
     , m_windowSettings(new WindowSettings(this))
     , m_autoStart(new AutoStart(this))
+    , m_permissions(new Permissions(this))
     , m_callSettings(new CallSettings(this))
     , m_accounts(new AccountManager(backend == SipBackend::Mock ? AccountManager::Storage::Demo
                                                                 : AccountManager::Storage::Persistent,
@@ -82,6 +84,7 @@ void Application::load(QQmlApplicationEngine &engine, bool startMinimized)
     qmlRegisterSingletonInstance(uri, 1, 0, "Tray", m_tray);
     qmlRegisterSingletonInstance(uri, 1, 0, "WindowSettings", m_windowSettings);
     qmlRegisterSingletonInstance(uri, 1, 0, "AutoStart", m_autoStart);
+    qmlRegisterSingletonInstance(uri, 1, 0, "Permissions", m_permissions);
     qmlRegisterUncreatableType<CallSession>(uri, 1, 0, "CallSession",
                                             QStringLiteral("Calls are created by PhoneController"));
 
@@ -90,4 +93,9 @@ void Application::load(QQmlApplicationEngine &engine, bool startMinimized)
     engine.loadFromModule("SilentSoftphone", "Main");
 
     m_phone->registerAccount();
+}
+
+void Application::requestPermissions()
+{
+    m_permissions->requestMissing();
 }

@@ -92,7 +92,7 @@ void SmokeTest::start()
 
     // Settings with a ComboBox popup open, in both themes.
     waitFor(QStringLiteral("idle after incoming call"), [this] { return idle(); }, [this] {
-        setRootProperty("height", 1900);
+        setRootProperty("height", 2300);
         setRootProperty("currentTab", 3);
         setComboPopupOpen("transportBox", true);
     });
