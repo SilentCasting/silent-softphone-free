@@ -72,6 +72,11 @@ int MockSipService::makeCall(const QString &uri)
 {
     if (uri.isEmpty() || m_registrationState != RegistrationState::Registered)
         return -1;
+    // Dialing "fail" simulates a call that cannot start, e.g. no usable sound device.
+    if (sipUserPart(uri) == QLatin1String("fail")) {
+        emit callFailed(tr("The microphone or speaker could not be opened (simulated)."));
+        return -1;
+    }
 
     const int callId = m_nextCallId++;
     m_liveCalls.insert(callId);

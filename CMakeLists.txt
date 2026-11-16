@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.21)
 
-project(SilentSoftphoneFree VERSION 0.1.1 LANGUAGES CXX)
+project(SilentSoftphoneFree VERSION 0.1.2 LANGUAGES CXX)
 if(APPLE)
     enable_language(OBJCXX) # macOS permission prompts (src/platform/Permissions_mac.mm)
 endif()

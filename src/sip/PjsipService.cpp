@@ -3,6 +3,7 @@
 
 // pjsua2 first: on Windows it must pull in winsock2.h before anything includes windows.h.
 #include <pjsua2.hpp>
+#include <pjmedia-audiodev/errno.h>
 
 #include "sip/PjsipService.h"
 
@@ -55,6 +56,19 @@ std::pair<QString, QString> parseNameAddr(const QString &value)
         return { QString(), value.trimmed() };
     const QString name = match.captured(1).isEmpty() ? match.captured(2).trimmed() : match.captured(1);
     return { name, match.captured(3) };
+}
+
+// PJSIP opens the sound device before sending an INVITE, so a microphone or speaker
+// problem stops an outgoing call before it reaches the PBX.
+QString describeCallError(const pj::Error &error)
+{
+    const bool audioDevice = error.status >= PJMEDIA_AUDIODEV_ERRNO_START
+                          && error.status <= PJMEDIA_AUDIODEV_ERRNO_END;
+    const QString reason = fromStd(error.reason);
+    if (audioDevice || reason.contains(QLatin1String("sound"), Qt::CaseInsensitive)
+        || reason.contains(QLatin1String("audio"), Qt::CaseInsensitive))
+        return QCoreApplication::translate("PjsipService", "The microphone or speaker could not be opened (%1).").arg(reason);
+    return reason;
 }
 
 QString transportParam(SipAccount::Transport transport)
@@ -255,6 +269,7 @@ PjsipService::PjsipService(QObject *parent)
 
         d->endpoint.libStart();
         d->ready = true;
+        logAudioDevices();
     } catch (const pj::Error &error) {
         qCCritical(lcSip) << "PJSIP initialisation failed:" << fromStd(error.info());
     }
@@ -348,8 +363,10 @@ void PjsipService::unregisterAccount()
 
 int PjsipService::makeCall(const QString &uri)
 {
-    if (!d->account)
+    if (!d->account) {
+        emit callFailed(tr("No SIP account is registered."));
         return -1;
+    }
 
     auto call = std::make_unique<PjCall>(*this, *d->account);
     try {
@@ -357,6 +374,7 @@ int PjsipService::makeCall(const QString &uri)
         call->makeCall(toStd(uri), param);
     } catch (const pj::Error &error) {
         qCWarning(lcSip) << "call to" << uri << "failed:" << fromStd(error.info());
+        emit callFailed(describeCallError(error));
         return -1;
     }
     const int callId = call->getId();
@@ -499,6 +517,35 @@ void PjsipService::releaseKeyTonesWhenIdle()
     } catch (const pj::Error &) {
     }
     d->keyTonesConnected = false;
+}
+
+// Written to the log at startup: which sound devices PJSIP sees and which it uses.
+void PjsipService::logAudioDevices()
+{
+    try {
+        pj::AudDevManager &devices = d->endpoint.audDevManager();
+        const pj::AudioDevInfoVector2 list = devices.enumDev2();
+        qCInfo(lcSip) << "audio devices:" << list.size();
+        for (int i = 0; i < int(list.size()); ++i) {
+            const pj::AudioDevInfo &device = list[i];
+            qCInfo(lcSip).noquote() << QStringLiteral("  [%1] %2 (%3) inputs=%4 outputs=%5")
+                                           .arg(i)
+                                           .arg(fromStd(device.name), fromStd(device.driver))
+                                           .arg(device.inputCount)
+                                           .arg(device.outputCount);
+        }
+        const auto deviceName = [&devices](int id) {
+            try {
+                return fromStd(devices.getDevInfo(id).name);
+            } catch (const pj::Error &error) {
+                return QStringLiteral("unavailable: ") + fromStd(error.reason);
+            }
+        };
+        qCInfo(lcSip).noquote() << "default input:" << deviceName(devices.getCaptureDev());
+        qCInfo(lcSip).noquote() << "default output:" << deviceName(devices.getPlaybackDev());
+    } catch (const pj::Error &error) {
+        qCWarning(lcSip) << "audio device list failed:" << fromStd(error.info());
+    }
 }
 
 QList<SipCodec> PjsipService::codecs() const

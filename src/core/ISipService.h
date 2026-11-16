@@ -50,4 +50,6 @@ signals:
     void registrationStateChanged(ISipService::RegistrationState state, const QString &reason);
     void incomingCall(int callId, const QString &remoteUri, const QString &remoteName);
     void callStateChanged(int callId, CallSession::State state);
+    // makeCall() could not start the call; reason is shown to the user.
+    void callFailed(const QString &reason);
 };

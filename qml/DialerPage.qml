@@ -85,6 +85,58 @@ Item {
             }
         }
 
+        // Why the last call didn't start, e.g. the sound device could not be opened.
+        Rectangle {
+            id: callErrorBanner
+
+            visible: Phone.callError.length > 0
+            Layout.fillWidth: true
+            implicitHeight: callErrorRow.implicitHeight + 16
+            radius: 10
+            color: Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.12)
+
+            Timer {
+                running: callErrorBanner.visible
+                interval: 12000
+                onTriggered: Phone.clearCallError()
+            }
+
+            RowLayout {
+                id: callErrorRow
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 8
+
+                Icon {
+                    name: "error"
+                    size: 18
+                    color: Theme.danger
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: qsTr("The call could not start: %1").arg(Phone.callError)
+                    color: Theme.text
+                    font.pixelSize: 12
+                    wrapMode: Text.WordWrap
+                }
+
+                Button {
+                    visible: Permissions.supported && Permissions.microphone !== "granted"
+                    text: qsTr("Permissions")
+                    onClicked: Permissions.requestMicrophone()
+                }
+
+                IconButton {
+                    size: 28
+                    iconName: "close"
+                    iconColor: Theme.textMuted
+                    tooltip: qsTr("Dismiss")
+                    onClicked: Phone.clearCallError()
+                }
+            }
+        }
+
         CallPanel {
             visible: root.inCall
             call: root.call

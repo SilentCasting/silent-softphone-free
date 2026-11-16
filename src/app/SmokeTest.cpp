@@ -64,8 +64,15 @@ void SmokeTest::start()
     saveTrayIcons();
 
     // Outgoing call: connect, DTMF, mute, hold, hang up.
+    // A call that cannot start must explain why on the dial screen.
     waitFor(QStringLiteral("registered"), [phone] { return phone->registrationStatus() == QLatin1String("registered"); },
-            [phone] { phone->dial(QStringLiteral("1002")); });
+            [phone] { phone->dial(QStringLiteral("fail")); });
+    waitFor(QStringLiteral("call error shown"), [phone] { return !phone->callError().isEmpty() && !phone->inCall(); }, {});
+    after(kSettleMs, QStringLiteral("call error screenshot"), [this, phone] {
+        screenshot(QStringLiteral("0-call-error-light"));
+        phone->clearCallError();
+        phone->dial(QStringLiteral("1002"));
+    });
     waitFor(QStringLiteral("outgoing call connected"), [this] { return callIn(CallSession::Active); }, {});
     after(kSettleMs, QStringLiteral("call screenshot"), [this, phone] {
         screenshot(QStringLiteral("1-call-light"));

@@ -33,6 +33,7 @@ PhoneController::PhoneController(ISipService *sip, AccountManager *accounts, Cal
     connect(m_sip, &ISipService::registrationStateChanged, this, &PhoneController::onRegistrationStateChanged);
     connect(m_sip, &ISipService::incomingCall, this, &PhoneController::onIncomingCall);
     connect(m_sip, &ISipService::callStateChanged, this, &PhoneController::onCallStateChanged);
+    connect(m_sip, &ISipService::callFailed, this, &PhoneController::setCallError);
     connect(m_accounts, &AccountManager::activeAccountChanged, this, &PhoneController::registerAccount);
     // The registered address is part of the status text.
     connect(m_accounts, &AccountManager::currentChanged, this, &PhoneController::registrationChanged);
@@ -90,6 +91,7 @@ void PhoneController::dial(const QString &number)
     if (target.isEmpty() || m_call)
         return;
 
+    clearCallError();
     const QString uri = toSipUri(target);
     const int callId = m_sip->makeCall(uri);
     if (callId < 0)
@@ -141,6 +143,19 @@ void PhoneController::playKeyTone(const QString &digit)
 {
     if (m_settings->keyTones() && isDtmfDigit(digit))
         m_sip->playKeyTone(digit.at(0));
+}
+
+void PhoneController::clearCallError()
+{
+    setCallError({});
+}
+
+void PhoneController::setCallError(const QString &error)
+{
+    if (m_callError == error)
+        return;
+    m_callError = error;
+    emit callErrorChanged();
 }
 
 void PhoneController::onRegistrationStateChanged(ISipService::RegistrationState state, const QString &reason)

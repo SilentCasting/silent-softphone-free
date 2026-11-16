@@ -52,6 +52,7 @@ private:
     void releaseCall(PjCall *call);
     PjCall *findCall(int callId) const;
     void releaseKeyTonesWhenIdle();
+    void logAudioDevices();
 
     std::unique_ptr<Private> d;
     RegistrationState m_registrationState = RegistrationState::Unregistered;
