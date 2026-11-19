@@ -165,6 +165,12 @@ Flickable {
             }
 
             AppCheckBox {
+                text: qsTr("Ring on incoming calls")
+                checked: CallSettings.ringtone
+                onToggled: CallSettings.ringtone = checked
+            }
+
+            AppCheckBox {
                 text: qsTr("Play key tones")
                 checked: CallSettings.keyTones
                 onToggled: CallSettings.keyTones = checked

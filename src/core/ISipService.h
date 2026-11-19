@@ -42,6 +42,8 @@ public:
 
     // Local key-press feedback on the speaker; never sent to the remote side.
     virtual void playKeyTone(QChar digit) = 0;
+    // Starts the given call tone in a loop, replacing the current one; None stops it.
+    virtual void playTone(CallTone tone) = 0;
 
     virtual QList<SipCodec> codecs() const = 0;
     virtual void setCodecPriority(const QString &codecId, int priority) = 0;

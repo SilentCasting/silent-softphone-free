@@ -14,6 +14,7 @@ class CallSettings : public QObject
     // Index into DtmfMethod: 0 Auto, 1 RFC 2833, 2 SIP INFO.
     Q_PROPERTY(int dtmfMethod READ dtmfMethodIndex WRITE setDtmfMethodIndex NOTIFY changed)
     Q_PROPERTY(bool keyTones READ keyTones WRITE setKeyTones NOTIFY changed)
+    Q_PROPERTY(bool ringtone READ ringtone WRITE setRingtone NOTIFY changed)
 
 public:
     explicit CallSettings(QObject *parent = nullptr);
@@ -25,10 +26,14 @@ public:
     bool keyTones() const { return m_keyTones; }
     void setKeyTones(bool enabled);
 
+    bool ringtone() const { return m_ringtone; }
+    void setRingtone(bool enabled);
+
 signals:
     void changed();
 
 private:
     DtmfMethod m_dtmfMethod = DtmfMethod::Auto;
     bool m_keyTones = true;
+    bool m_ringtone = true;
 };

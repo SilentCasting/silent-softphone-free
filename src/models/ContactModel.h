@@ -11,9 +11,11 @@ struct Contact
 {
     QString name;
     QString number;
-    QString presence; // "online" | "busy" | "away" | "offline"
+    QString presence; // "online" | "busy" | "away" | "offline"; empty when unknown (no indicator)
 };
 
+// The address book. Saved as JSON to storageFile after every change; an empty path
+// keeps it in memory only (the mock backend's sandbox).
 class ContactModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -21,7 +23,7 @@ class ContactModel : public QAbstractListModel
 public:
     enum Role { NameRole = Qt::UserRole + 1, NumberRole, PresenceRole };
 
-    explicit ContactModel(QObject *parent = nullptr);
+    explicit ContactModel(const QString &storageFile = {}, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = {}) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -32,6 +34,10 @@ public:
     QString nameForNumber(const QString &number) const;
 
 private:
+    void load();
+    void save() const;
+
+    const QString m_storageFile;
     QList<Contact> m_contacts;
 };
 

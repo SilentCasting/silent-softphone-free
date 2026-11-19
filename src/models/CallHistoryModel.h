@@ -18,8 +18,8 @@ struct CallRecord
     int durationSec = 0;
 };
 
-// Newest-first call log.
-// TODO(stage 3): persist to SQLite.
+// Newest-first call log, capped at the most recent records. Saved as JSON to storageFile
+// after every change; an empty path keeps it in memory only (the mock backend's sandbox).
 class CallHistoryModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -27,7 +27,7 @@ class CallHistoryModel : public QAbstractListModel
 public:
     enum Role { NameRole = Qt::UserRole + 1, NumberRole, KindRole, TimeTextRole, DurationTextRole };
 
-    explicit CallHistoryModel(QObject *parent = nullptr);
+    explicit CallHistoryModel(const QString &storageFile = {}, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = {}) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -37,5 +37,9 @@ public:
     Q_INVOKABLE void clear();
 
 private:
+    void load();
+    void save() const;
+
+    const QString m_storageFile;
     QList<CallRecord> m_records;
 };

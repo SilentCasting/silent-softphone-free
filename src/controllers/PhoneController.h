@@ -63,6 +63,7 @@ private:
     void onCallStateChanged(int callId, CallSession::State state);
     void pollCallMedia();
     void setCallError(const QString &error);
+    void updateCallTone();
 
     QString toSipUri(const QString &target) const;
     void setCurrentCall(CallSession *call);
@@ -79,6 +80,7 @@ private:
     QPointer<CallSession> m_call;
     QTimer m_mediaPoll;
     QString m_callError;
+    CallTone m_tone = CallTone::None;
     // Account switched during a call; re-register once the call ends.
     bool m_registrationPending = false;
 };

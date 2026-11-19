@@ -29,6 +29,7 @@ public:
     CallMediaInfo callMedia(int callId) const override;
 
     void playKeyTone(QChar digit) override;
+    void playTone(CallTone tone) override;
 
     QList<SipCodec> codecs() const override { return m_codecs; }
     void setCodecPriority(const QString &codecId, int priority) override;

@@ -37,6 +37,7 @@ public:
     CallMediaInfo callMedia(int callId) const override;
 
     void playKeyTone(QChar digit) override;
+    void playTone(CallTone tone) override;
 
     QList<SipCodec> codecs() const override;
     void setCodecPriority(const QString &codecId, int priority) override;
@@ -53,6 +54,7 @@ private:
     PjCall *findCall(int callId) const;
     void releaseKeyTonesWhenIdle();
     void logAudioDevices();
+    void onCallAudioConnected();
 
     std::unique_ptr<Private> d;
     RegistrationState m_registrationState = RegistrationState::Unregistered;

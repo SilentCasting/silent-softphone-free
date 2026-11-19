@@ -34,6 +34,7 @@ PhoneController::PhoneController(ISipService *sip, AccountManager *accounts, Cal
     connect(m_sip, &ISipService::incomingCall, this, &PhoneController::onIncomingCall);
     connect(m_sip, &ISipService::callStateChanged, this, &PhoneController::onCallStateChanged);
     connect(m_sip, &ISipService::callFailed, this, &PhoneController::setCallError);
+    connect(m_settings, &CallSettings::changed, this, &PhoneController::updateCallTone);
     connect(m_accounts, &AccountManager::activeAccountChanged, this, &PhoneController::registerAccount);
     // The registered address is part of the status text.
     connect(m_accounts, &AccountManager::currentChanged, this, &PhoneController::registrationChanged);
@@ -145,6 +146,23 @@ void PhoneController::playKeyTone(const QString &digit)
         m_sip->playKeyTone(digit.at(0));
 }
 
+// Ringtone while an incoming call waits, ringback while the remote phone rings;
+// silence otherwise (connected, on hold, no call).
+void PhoneController::updateCallTone()
+{
+    CallTone tone = CallTone::None;
+    if (m_call) {
+        if (m_call->state() == CallSession::Alerting && m_settings->ringtone())
+            tone = CallTone::Incoming;
+        else if (m_call->state() == CallSession::Ringing)
+            tone = CallTone::Ringback;
+    }
+    if (tone == m_tone)
+        return;
+    m_tone = tone;
+    m_sip->playTone(tone);
+}
+
 void PhoneController::clearCallError()
 {
     setCallError({});
@@ -183,6 +201,8 @@ void PhoneController::onCallStateChanged(int callId, CallSession::State state)
     m_call->setState(state);
     if (state == CallSession::Ended)
         finishCurrentCall();
+    else
+        updateCallTone();
 }
 
 void PhoneController::pollCallMedia()
@@ -211,6 +231,7 @@ void PhoneController::setCurrentCall(CallSession *call)
         m_mediaPoll.start();
     else
         m_mediaPoll.stop();
+    updateCallTone();
     emit currentCallChanged();
 }
 

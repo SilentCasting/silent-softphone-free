@@ -13,6 +13,8 @@
 #include <QRegularExpression>
 #include <QTimer>
 
+#include <utility>
+
 Q_LOGGING_CATEGORY(lcSip, "silentsoftphone.sip")
 
 namespace {
@@ -22,6 +24,7 @@ constexpr int kKeyToneOnMs = 120;
 constexpr int kKeyToneOffMs = 20;
 constexpr short kKeyToneVolume = 8000; // PJMEDIA default is noticeably loud for UI feedback
 constexpr int kKeyToneIdleCheckMs = 250;
+constexpr short kRingbackVolume = 6000;
 
 QString fromStd(const std::string &value)
 {
@@ -133,6 +136,8 @@ public:
             m_service.postCallState(info.id, localHold ? CallSession::Held : CallSession::Active);
     }
 
+    bool hasAudio() const { return m_audioIndex >= 0; }
+
     CallMediaInfo media() const
     {
         CallMediaInfo info;
@@ -177,6 +182,7 @@ private:
             if (!m_muted)
                 devices.getCaptureDevMedia().startTransmit(media);
             m_audioIndex = index;
+            m_service.onCallAudioConnected();
 
             const pj::StreamInfo stream = getStreamInfo(unsigned(index));
             m_codec = QStringLiteral("%1 %2 kHz").arg(fromStd(stream.codecName)).arg(stream.codecClockRate / 1000.0);
@@ -230,6 +236,10 @@ struct PjsipService::Private
     std::unique_ptr<pj::ToneGenerator> keyTones;
     bool keyTonesConnected = false;
     QTimer keyToneIdleCheck;
+    // Ringtone / ringback; connected to the speaker only while one plays.
+    std::unique_ptr<pj::ToneGenerator> callTones;
+    bool callTonesConnected = false;
+    CallTone currentTone = CallTone::None;
     QTimer poller;
     bool ready = false;
     int udpTransport = -1;
@@ -293,6 +303,7 @@ PjsipService::~PjsipService()
     }
     d->keyToneIdleCheck.stop();
     d->keyTones.reset(); // media ports must go before libDestroy()
+    d->callTones.reset();
     qDeleteAll(d->calls);
     d->calls.clear();
     d->account.reset();
@@ -503,6 +514,73 @@ void PjsipService::playKeyTone(QChar digit)
     } catch (const pj::Error &error) {
         qCWarning(lcSip) << "key tone failed:" << fromStd(error.info());
     }
+}
+
+void PjsipService::playTone(CallTone tone)
+{
+    // Call states reach PhoneController queued, so the request for ringback can arrive
+    // after early media is already connected; the PBX's own audio wins then.
+    if (tone == CallTone::Ringback) {
+        for (const PjCall *call : std::as_const(d->calls)) {
+            if (call->hasAudio()) {
+                tone = CallTone::None;
+                break;
+            }
+        }
+    }
+    if (!d->ready || tone == d->currentTone)
+        return;
+    d->currentTone = tone;
+
+    const auto makeTone = [](short freq1, short freq2, short onMs, short offMs, short volume) {
+        pj::ToneDesc desc;
+        desc.freq1 = freq1;
+        desc.freq2 = freq2;
+        desc.on_msec = onMs;
+        desc.off_msec = offMs;
+        desc.volume = volume; // 0 = PJMEDIA default
+        return desc;
+    };
+
+    try {
+        pj::AudioMedia &speaker = d->endpoint.audDevManager().getPlaybackDevMedia();
+        if (tone == CallTone::None) {
+            if (d->callTones)
+                d->callTones->stop();
+            if (d->callTonesConnected) {
+                d->callTones->stopTransmit(speaker);
+                d->callTonesConnected = false;
+            }
+            return;
+        }
+
+        if (!d->callTones) {
+            auto generator = std::make_unique<pj::ToneGenerator>();
+            generator->createToneGenerator();
+            d->callTones = std::move(generator);
+        }
+        pj::ToneDescVector pattern;
+        if (tone == CallTone::Incoming) // classic double ring: two short bursts, then a pause
+            pattern = { makeTone(440, 480, 400, 200, 0), makeTone(440, 480, 400, 2000, 0) };
+        else // ringback as used in Ukraine and most of Europe: 425 Hz, 1 s on, 4 s off
+            pattern = { makeTone(425, 0, 1000, 4000, kRingbackVolume) };
+        d->callTones->stop();
+        d->callTones->play(pattern, true);
+        if (!d->callTonesConnected) {
+            d->callTones->startTransmit(speaker);
+            d->callTonesConnected = true;
+        }
+    } catch (const pj::Error &error) {
+        qCWarning(lcSip) << "call tone failed:" << fromStd(error.info());
+    }
+}
+
+void PjsipService::onCallAudioConnected()
+{
+    // The call carries its own audio now (answered, or the PBX sends early media such as
+    // its own ringback), so a locally generated ringback would only get in the way.
+    if (d->currentTone == CallTone::Ringback)
+        playTone(CallTone::None);
 }
 
 void PjsipService::releaseKeyTonesWhenIdle()

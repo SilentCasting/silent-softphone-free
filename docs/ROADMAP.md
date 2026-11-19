@@ -9,14 +9,15 @@
 A light, native SIP softphone for Windows and macOS: a compact window, fast dialing, few clicks,
 and a modern look with light and dark themes. Free and open source.
 
-### Done (v0.1)
+### Done (v0.1–v0.2)
 
 - SIP registration over UDP and TCP; multiple accounts with one active
 - Outgoing and incoming calls, hold, mute, DTMF (RFC 2833 with SIP INFO fallback), key tones
 - Incoming call popup on top of other windows
 - Live audio level meters and the active codec during a call
 - Codec list with priorities; G.722, G.711 A-law and µ-law enabled by default
-- Contacts with search, call history
+- Contacts with search, call history, both saved between launches
+- Ringtone for incoming calls, ringback for outgoing calls
 - Tray icon with status and missed calls, close to tray, start with the system
 - Light, dark and system themes; adaptive layout
 - SIP log file
@@ -25,10 +26,10 @@ and a modern look with light and dark themes. Free and open source.
 ### Next
 
 - TLS and SRTP (OpenSSL build of PJSIP)
-- Audio device selection (microphone, speaker, ringer) and a ringtone
+- Audio device selection (microphone, speaker, ringer) and custom ringtones
 - Opus codec
 - Passwords in Windows Credential Manager / macOS Keychain
-- Contacts and history stored in SQLite
+- Contact import/export (vCard, CSV)
 - Signed installers (MSI or NSIS for Windows, DMG for macOS)
 
 ### Later
@@ -54,14 +55,15 @@ and a modern look with light and dark themes. Free and open source.
 Легкий нативний SIP softphone для Windows і macOS: компактне вікно, швидкий набір, мінімум
 кліків і сучасний вигляд зі світлою та темною темами. Безкоштовний і з відкритим кодом.
 
-### Зроблено (v0.1)
+### Зроблено (v0.1–v0.2)
 
 - Реєстрація SIP через UDP і TCP; кілька акаунтів, один активний
 - Вихідні та вхідні дзвінки, hold, mute, DTMF (RFC 2833 з переходом на SIP INFO), тони клавіш
 - Спливаюче вікно вхідного дзвінка поверх інших вікон
 - Шкали рівня звуку й активний кодек під час розмови
 - Список кодеків із пріоритетами; за замовчуванням увімкнені G.722, G.711 A-law і µ-law
-- Контакти з пошуком, історія дзвінків
+- Контакти з пошуком, історія дзвінків; обидва зберігаються між запусками
+- Мелодія вхідного дзвінка, гудки для вихідного
 - Іконка в треї зі статусом і пропущеними, закриття в трей, автозапуск
 - Світла, темна та системна теми; адаптивний макет
 - SIP-журнал у файл
@@ -70,10 +72,10 @@ and a modern look with light and dark themes. Free and open source.
 ### Далі
 
 - TLS і SRTP (збірка PJSIP з OpenSSL)
-- Вибір аудіопристроїв (мікрофон, динамік, дзвінок) і мелодія дзвінка
+- Вибір аудіопристроїв (мікрофон, динамік, дзвінок) і власні мелодії
 - Кодек Opus
 - Паролі у Windows Credential Manager / macOS Keychain
-- Контакти та історія в SQLite
+- Імпорт/експорт контактів (vCard, CSV)
 - Підписані інсталятори (MSI або NSIS для Windows, DMG для macOS)
 
 ### Пізніше

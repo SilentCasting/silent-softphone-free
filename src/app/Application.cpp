@@ -22,8 +22,11 @@
 #include "sip/PjsipService.h"
 #endif
 
+#include <QDateTime>
+#include <QDir>
 #include <QQmlApplicationEngine>
 #include <QQmlEngine>
+#include <QStandardPaths>
 
 namespace {
 
@@ -36,6 +39,32 @@ ISipService *createSipService(Application::SipBackend backend, QObject *parent)
     Q_UNUSED(backend)
 #endif
     return new MockSipService(parent);
+}
+
+// Contacts and history live next to the other user data, e.g.
+// %APPDATA%\SilentSoftphone\SilentSoftphoneFree on Windows.
+QString dataFile(Application::SipBackend backend, const QString &name)
+{
+    if (backend == Application::SipBackend::Mock)
+        return {}; // the mock backend is a sandbox: nothing is saved
+    const QString directory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(directory);
+    return directory + u'/' + name;
+}
+
+// Sample data so the mock backend (development, CI screenshots) has something to show.
+void seedDemoData(ContactModel *contacts, CallHistoryModel *history)
+{
+    contacts->addContact({ QStringLiteral("Olena Kovalenko"), QStringLiteral("1002"), QStringLiteral("online") });
+    contacts->addContact({ QStringLiteral("Andrii Shevchenko"), QStringLiteral("1003"), QStringLiteral("busy") });
+    contacts->addContact({ QStringLiteral("Reception"), QStringLiteral("100"), QStringLiteral("online") });
+    contacts->addContact({ QStringLiteral("Support Line"), QStringLiteral("700"), QStringLiteral("away") });
+    contacts->addContact({ QStringLiteral("Maria Bondar"), QStringLiteral("+380501112233"), QStringLiteral("offline") });
+
+    const QDateTime now = QDateTime::currentDateTime();
+    history->addRecord({ QStringLiteral("Support Line"), QStringLiteral("700"), CallRecord::Kind::Outgoing, now.addDays(-1), 452 });
+    history->addRecord({ QString(), QStringLiteral("+380441234567"), CallRecord::Kind::Missed, now.addSecs(-3 * 3600), 0 });
+    history->addRecord({ QStringLiteral("Olena Kovalenko"), QStringLiteral("1002"), CallRecord::Kind::Incoming, now.addSecs(-25 * 60), 184 });
 }
 
 } // namespace
@@ -59,15 +88,17 @@ Application::Application(SipBackend backend, const QString &logFile, QObject *pa
     , m_accounts(new AccountManager(backend == SipBackend::Mock ? AccountManager::Storage::Demo
                                                                 : AccountManager::Storage::Persistent,
                                     this))
-    , m_contacts(new ContactModel(this))
+    , m_contacts(new ContactModel(dataFile(backend, QStringLiteral("contacts.json")), this))
     , m_contactFilter(new ContactFilterModel(m_contacts, this))
-    , m_history(new CallHistoryModel(this))
+    , m_history(new CallHistoryModel(dataFile(backend, QStringLiteral("history.json")), this))
     , m_sip(createSipService(backend, this))
     , m_codecs(new CodecModel(m_sip, backend != SipBackend::Mock, this))
     , m_diagnostics(new Diagnostics(qobject_cast<MockSipService *>(m_sip), logFile, this))
     , m_phone(new PhoneController(m_sip, m_accounts, m_callSettings, m_contacts, m_history, this))
     , m_tray(new TrayController(m_phone, m_accounts, this))
 {
+    if (backend == SipBackend::Mock)
+        seedDemoData(m_contacts, m_history);
 }
 
 void Application::load(QQmlApplicationEngine &engine, bool startMinimized)

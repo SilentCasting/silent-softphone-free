@@ -9,6 +9,7 @@ namespace {
 
 constexpr auto kDtmfMethodKey = "calls/dtmfMethod";
 constexpr auto kKeyTonesKey = "calls/keyTones";
+constexpr auto kRingtoneKey = "calls/ringtone";
 
 DtmfMethod toDtmfMethod(int index)
 {
@@ -27,6 +28,7 @@ CallSettings::CallSettings(QObject *parent)
     const QSettings settings;
     m_dtmfMethod = toDtmfMethod(settings.value(kDtmfMethodKey, int(DtmfMethod::Auto)).toInt());
     m_keyTones = settings.value(kKeyTonesKey, true).toBool();
+    m_ringtone = settings.value(kRingtoneKey, true).toBool();
 }
 
 void CallSettings::setDtmfMethodIndex(int index)
@@ -45,5 +47,14 @@ void CallSettings::setKeyTones(bool enabled)
         return;
     m_keyTones = enabled;
     QSettings().setValue(kKeyTonesKey, enabled);
+    emit changed();
+}
+
+void CallSettings::setRingtone(bool enabled)
+{
+    if (m_ringtone == enabled)
+        return;
+    m_ringtone = enabled;
+    QSettings().setValue(kRingtoneKey, enabled);
     emit changed();
 }

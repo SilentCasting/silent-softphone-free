@@ -35,10 +35,12 @@ Qt 6 and PJSIP.
   header or the tray menu
 - Calls: dial pad, hold, mute, DTMF for voice menus (RFC 2833 with automatic SIP INFO fallback;
   digits can be typed on the keyboard during a call), key tones
-- Incoming call popup on top of other windows, even when the app is hidden in the tray
+- Incoming call popup on top of other windows, even when the app is hidden in the tray;
+  ringtone for incoming calls and ringback while the other side is ringing
 - Live microphone and speaker level meters and the active codec during a call
 - Codec list: enable, disable and reorder (G.722 and G.711 A-law/µ-law by default)
-- Contacts with search; call history with incoming, outgoing and missed calls
+- Contacts with search; call history with incoming, outgoing and missed calls; both are saved
+  between launches
 - Tray icon with registration status and missed calls; closing the window keeps the app
   running in the tray; optional start with the system
 - Light, dark and system themes; compact and wide layouts
@@ -145,10 +147,12 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ROADMAP.md](docs/ROAD
   в меню трею
 - Дзвінки: номеронабирач, hold, mute, DTMF для голосових меню (RFC 2833 з автоматичним переходом
   на SIP INFO; цифри можна вводити з клавіатури під час розмови), тони клавіш
-- Спливаюче вікно вхідного дзвінка поверх інших вікон, навіть коли застосунок у треї
+- Спливаюче вікно вхідного дзвінка поверх інших вікон, навіть коли застосунок у треї;
+  мелодія вхідного дзвінка і гудки, поки викликається співрозмовник
 - Шкали рівня мікрофона й динаміка та активний кодек під час розмови
 - Список кодеків: увімкнення, вимкнення, порядок (за замовчуванням G.722 і G.711 A-law/µ-law)
-- Контакти з пошуком; історія вхідних, вихідних і пропущених дзвінків
+- Контакти з пошуком; історія вхідних, вихідних і пропущених дзвінків; обидва зберігаються
+  між запусками
 - Іконка в треї зі статусом реєстрації та пропущеними; закриття вікна залишає застосунок
   працювати в треї; автозапуск разом із системою
 - Світла, темна та системна теми; компактний і широкий макети

@@ -132,6 +132,12 @@ void MockSipService::playKeyTone(QChar digit)
     qDebug() << "[mock-sip] key tone" << digit;
 }
 
+void MockSipService::playTone(CallTone tone)
+{
+    static const char *const names[] = { "none", "incoming", "ringback" };
+    qDebug() << "[mock-sip] call tone" << names[int(tone)];
+}
+
 void MockSipService::setCodecPriority(const QString &codecId, int priority)
 {
     for (SipCodec &codec : m_codecs) {

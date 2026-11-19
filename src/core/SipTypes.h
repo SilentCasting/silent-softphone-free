@@ -11,6 +11,13 @@ enum class DtmfMethod {
     SipInfo
 };
 
+// Locally played call-progress tones.
+enum class CallTone {
+    None,
+    Incoming, // ringtone while an incoming call waits to be answered
+    Ringback  // the remote phone is ringing (outgoing call, no early media)
+};
+
 struct SipCodec
 {
     QString id;       // stack identifier, e.g. "PCMA/8000/1"

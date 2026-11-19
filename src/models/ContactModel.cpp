@@ -3,16 +3,46 @@
 
 #include "models/ContactModel.h"
 
-ContactModel::ContactModel(QObject *parent)
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDebug>
+#include <QSaveFile>
+
+ContactModel::ContactModel(const QString &storageFile, QObject *parent)
     : QAbstractListModel(parent)
-    , m_contacts{
-          { QStringLiteral("Olena Kovalenko"), QStringLiteral("1002"), QStringLiteral("online") },
-          { QStringLiteral("Andrii Shevchenko"), QStringLiteral("1003"), QStringLiteral("busy") },
-          { QStringLiteral("Reception"), QStringLiteral("100"), QStringLiteral("online") },
-          { QStringLiteral("Support Line"), QStringLiteral("700"), QStringLiteral("away") },
-          { QStringLiteral("Maria Bondar"), QStringLiteral("+380501112233"), QStringLiteral("offline") },
-      }
+    , m_storageFile(storageFile)
 {
+    load();
+}
+
+void ContactModel::load()
+{
+    if (m_storageFile.isEmpty())
+        return;
+    QFile file(m_storageFile);
+    if (!file.open(QIODevice::ReadOnly))
+        return; // first run: no contacts yet
+    const QJsonArray items = QJsonDocument::fromJson(file.readAll()).array();
+    for (const QJsonValue &item : items) {
+        const QJsonObject object = item.toObject();
+        const QString number = object.value(QLatin1String("number")).toString();
+        if (!number.isEmpty())
+            m_contacts.append({ object.value(QLatin1String("name")).toString(), number, QString() });
+    }
+}
+
+void ContactModel::save() const
+{
+    if (m_storageFile.isEmpty())
+        return;
+    QJsonArray items;
+    for (const Contact &contact : m_contacts)
+        items.append(QJsonObject{ { QStringLiteral("name"), contact.name }, { QStringLiteral("number"), contact.number } });
+    QSaveFile file(m_storageFile);
+    if (!file.open(QIODevice::WriteOnly) || file.write(QJsonDocument(items).toJson()) < 0 || !file.commit())
+        qWarning() << "could not save contacts to" << m_storageFile;
 }
 
 int ContactModel::rowCount(const QModelIndex &parent) const
@@ -50,6 +80,7 @@ void ContactModel::addContact(const Contact &contact)
     beginInsertRows({}, row, row);
     m_contacts.append(contact);
     endInsertRows();
+    save();
 }
 
 void ContactModel::removeContact(int row)
@@ -59,6 +90,7 @@ void ContactModel::removeContact(int row)
     beginRemoveRows({}, row, row);
     m_contacts.removeAt(row);
     endRemoveRows();
+    save();
 }
 
 QString ContactModel::nameForNumber(const QString &number) const
@@ -96,8 +128,7 @@ void ContactFilterModel::addContact(const QString &name, const QString &number)
     if (trimmedNumber.isEmpty())
         return;
     const QString trimmedName = name.trimmed();
-    m_source->addContact({ trimmedName.isEmpty() ? trimmedNumber : trimmedName,
-                           trimmedNumber, QStringLiteral("offline") });
+    m_source->addContact({ trimmedName.isEmpty() ? trimmedNumber : trimmedName, trimmedNumber, QString() });
 }
 
 void ContactFilterModel::removeAt(int row)
